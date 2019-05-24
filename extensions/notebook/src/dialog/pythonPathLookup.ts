@@ -32,19 +32,19 @@ export class PythonPathLookup {
 		if (process.platform !== constants.winPlatform) {
 			let userFolder = process.env['HOME'];
 			condaLocations = [
-				'/opt/*conda*/bin/conda',
-				'/usr/share/*conda*/bin/conda',
-				`${userFolder}/*conda*/bin/conda`
+				'/opt/*conda*/bin/python',
+				'/usr/share/*conda*/bin/python',
+				`${userFolder}/*conda*/bin/python`
 			];
 		} else {
 			let userFolder = process.env['USERPROFILE'].replace('\\', '/');
 			condaLocations = [
-				'C:/ProgramData/[Mm]iniconda*/Scripts/conda.exe',
-				'C:/ProgramData/[Aa]naconda*/Scripts/conda.exe',
-				`${userFolder}/[Mm]iniconda*/Scripts/conda.exe`,
-				`${userFolder}/[Aa]naconda*/Scripts/conda.exe`,
-				`${userFolder}/AppData/Local/Continuum/[Mm]iniconda*/Scripts/conda.exe`,
-				`${userFolder}/AppData/Local/Continuum/[Aa]naconda*/Scripts/conda.exe`
+				'C:/ProgramData/[Mm]iniconda*/python.exe',
+				'C:/ProgramData/[Aa]naconda*/python.exe',
+				`${userFolder}/[Mm]iniconda*/python.exe`,
+				`${userFolder}/[Aa]naconda*/python.exe`,
+				`${userFolder}/AppData/Local/Continuum/[Mm]iniconda*/python.exe`,
+				`${userFolder}/AppData/Local/Continuum/[Aa]naconda*/python.exe`
 			];
 		}
 
