@@ -78,7 +78,8 @@ export class PythonPathLookup {
 
 	private async getInterpreter(options: { command: string; args?: string[] }): Promise<string> {
 		try {
-			const args = Array.isArray(options.args) ? options.args : [];
+			let args = Array.isArray(options.args) ? options.args : [];
+			args = args.concat(['-c', '"import sys;print(sys.executable)"']);
 			const cmd = `"${options.command}" ${args.join(' ')}`;
 			let output = await utils.executeBufferedCommand(cmd, {});
 			let value = output ? output.trim() : '';
