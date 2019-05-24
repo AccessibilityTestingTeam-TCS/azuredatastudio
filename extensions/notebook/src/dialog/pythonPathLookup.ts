@@ -5,23 +5,29 @@
 
 import * as vscode from 'vscode';
 import * as fs from 'fs';
+import * as glob from 'glob';
 
 import * as utils from '../common/utils';
 import * as constants from '../common/constants';
 
 export class PythonPathLookup {
 	constructor(private outputChannel: vscode.OutputChannel) {
-
 	}
 
 	public async getSuggestions(): Promise<string[]> {
 		let pythonSuggestions = await this.getPythonSuggestions();
-		let condaSuggestions = await this.getCondaSuggestions();
+		let condaSuggestion = await this.getCondaSuggestions();
 
-		return pythonSuggestions.concat(condaSuggestions);
+		let result: string[];
+		if (pythonSuggestions && condaSuggestion) {
+			result = pythonSuggestions.concat(condaSuggestion);
+		} else {
+			result = [];
+		}
+		return result;
 	}
 
-	private async getCondaSuggestions(): Promise<string[]> {
+	private async getCondaSuggestions(): Promise<string> {
 		let condaLocations;
 		if (process.platform === constants.winPlatform) {
 			let userFolder = process.env['HOME'];
@@ -31,23 +37,32 @@ export class PythonPathLookup {
 				`${userFolder}/*conda*/bin/conda`
 			];
 		} else {
-			let userFolder = process.env['USERPROFILE'];
+			let userFolder = process.env['USERPROFILE'].replace('\\', '/');
 			condaLocations = [
-				'C:\\ProgramData\\[Mm]iniconda*\\Scripts\\conda.exe',
-				'C:\\ProgramData\\[Aa]naconda*\\Scripts\\conda.exe',
-				`${userFolder}\\[Mm]iniconda*\\Scripts\\conda.exe`,
-				`${userFolder}\\[Aa]naconda*\\Scripts\\conda.exe`,
-				`${userFolder}\\AppData\\Local\\Continuum\\[Mm]iniconda*\\Scripts\\conda.exe`,
-				`${userFolder}\\AppData\\Local\\Continuum\\[Aa]naconda*\\Scripts\\conda.exe`
+				'C:/ProgramData/[Mm]iniconda*/Scripts/conda.exe',
+				'C:/ProgramData/[Aa]naconda*/Scripts/conda.exe',
+				`${userFolder}/[Mm]iniconda*/Scripts/conda.exe`,
+				`${userFolder}/[Aa]naconda*/Scripts/conda.exe`,
+				`${userFolder}/AppData/Local/Continuum/[Mm]iniconda*/Scripts/conda.exe`,
+				`${userFolder}/AppData/Local/Continuum/[Aa]naconda*/Scripts/conda.exe`
 			];
 		}
 
-		const condaFile = condaLocations.find(location => fs.existsSync(location));
-		if (condaFile) {
-			return [condaFile];
-		} else {
-			return [];
-		}
+		let condaLocationsGlob = `{${condaLocations.join(',')}}`;
+		let condaFiles = await this.globSearch(condaLocationsGlob);
+		const validCondaFiles = condaFiles.filter(condaPath => condaPath.length > 0);
+		return validCondaFiles.length === 0 ? undefined : validCondaFiles[0];
+	}
+
+	private globSearch(globPattern: string): Promise<string[]> {
+		return new Promise<string[]>((resolve, reject) => {
+			glob(globPattern, (err, files) => {
+				if (err) {
+					return reject(err);
+				}
+				resolve(Array.isArray(files) ? files : []);
+			});
+		});
 	}
 
 	private async getPythonSuggestions(): Promise<string[]> {
