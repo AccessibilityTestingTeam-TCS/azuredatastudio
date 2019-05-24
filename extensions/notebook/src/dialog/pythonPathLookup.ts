@@ -81,7 +81,7 @@ export class PythonPathLookup {
 			const args = Array.isArray(options.args) ? options.args : [];
 			const cmd = `"${options.command}" ${args.join(' ')}`;
 			return utils.executeBufferedCommand(cmd, {})
-				.then(output => output.trim())
+				.then(output => output ? output.trim() : '')
 				.then(value => {
 					if (value.length > 0 && fs.existsSync(value)) {
 						return value;
