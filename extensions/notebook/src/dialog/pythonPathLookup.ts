@@ -29,7 +29,7 @@ export class PythonPathLookup {
 
 	private async getCondaSuggestions(): Promise<string> {
 		let condaLocations;
-		if (process.platform === constants.winPlatform) {
+		if (process.platform !== constants.winPlatform) {
 			let userFolder = process.env['HOME'];
 			condaLocations = [
 				'/opt/*conda*/bin/conda',
