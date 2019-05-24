@@ -80,15 +80,14 @@ export class PythonPathLookup {
 		try {
 			const args = Array.isArray(options.args) ? options.args : [];
 			const cmd = `"${options.command}" ${args.join(' ')}`;
-			return utils.executeBufferedCommand(cmd, {})
-				.then(output => output ? output.trim() : '')
-				.then(value => {
-					if (value.length > 0 && fs.existsSync(value)) {
-						return value;
-					}
-					this.outputChannel.appendLine(`Detection of Python Interpreter for Command ${options.command} and args ${args.join(' ')} failed as file ${value} does not exist`);
-					return '';
-				});
+			let output = await utils.executeBufferedCommand(cmd, {});
+			let value = output ? output.trim() : '';
+			if (value.length > 0 && fs.existsSync(value)) {
+				return value;
+			}
+
+			this.outputChannel.appendLine(`Detection of Python Interpreter for Command ${options.command} and args ${args.join(' ')} failed as file ${value} does not exist`);
+			return '';
 		} catch (err) {
 			this.outputChannel.appendLine(`Detection of Python Interpreter for Command ${options.command} failed: ${utils.getErrorMessage(err)}`);
 			return '';
