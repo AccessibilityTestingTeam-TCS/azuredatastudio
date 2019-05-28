@@ -9,6 +9,11 @@ import * as glob from 'glob';
 import * as utils from '../common/utils';
 import * as constants from '../common/constants';
 
+export interface PythonPathInfo {
+	path: string;
+	version: string;
+}
+
 export class PythonPathLookup {
 	private condaLocationsGlob: string;
 	constructor() {
@@ -34,21 +39,19 @@ export class PythonPathLookup {
 		this.condaLocationsGlob = condaLocations.join(',');
 	}
 
-	public async getSuggestions(): Promise<string[]> {
+	public async getSuggestions(): Promise<PythonPathInfo[]> {
 		let pythonSuggestions = await this.getPythonSuggestions();
 		let condaSuggestion = await this.getCondaSuggestions();
 
-		let result: string[];
 		if (pythonSuggestions) {
 			if (condaSuggestion && condaSuggestion.length > 0) {
-				result = pythonSuggestions.concat(condaSuggestion);
-			} else {
-				result = pythonSuggestions;
+				pythonSuggestions = pythonSuggestions.concat(condaSuggestion);
 			}
+
+			return this.getPythonVersions(pythonSuggestions);
 		} else {
-			result = [];
+			return [];
 		}
-		return result;
 	}
 
 	private async getCondaSuggestions(): Promise<string> {
@@ -111,5 +114,28 @@ export class PythonPathLookup {
 		return paths.concat(versions.map(version => {
 			return { command: 'py', args: [`-${version}`] };
 		}));
+	}
+
+	private async getPythonVersions(pythonPaths: string[]): Promise<PythonPathInfo[]> {
+		let results = await Promise.all(pythonPaths.map(path => this.getPythonVersion(path)));
+		return results.filter(result => result && result.path && result.version);
+	}
+
+	private async getPythonVersion(pythonPath: string): Promise<PythonPathInfo> {
+		try {
+			const cmd = `"${pythonPath}" --version`;
+			let output = await utils.executeBufferedCommand(cmd, {});
+			let pythonVersion = output ? output.trim() : '';
+			if (pythonVersion.length > 0) {
+				return {
+					path: pythonPath,
+					version: pythonVersion
+				};
+			}
+		} catch (err) {
+			// Ignore errors here, since this python version will just be excluded.
+		}
+
+		return undefined;
 	}
 }

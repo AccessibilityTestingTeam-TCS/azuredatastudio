@@ -12,7 +12,8 @@ import * as utils from '../common/utils';
 import JupyterServerInstallation from '../jupyter/jupyterServerInstallation';
 import { ApiWrapper } from '../common/apiWrapper';
 import { Deferred } from '../common/promise';
-import { PythonPathLookup } from './pythonPathLookup';
+import { PythonPathLookup, PythonPathInfo } from './pythonPathLookup';
+import { pythonVersion } from '../common/constants';
 
 const localize = nls.loadMessageBundle();
 
@@ -35,7 +36,7 @@ export class ConfigurePythonDialog {
 	private existingInstallButton: azdata.RadioButtonComponent;
 
 	private _setupComplete: Deferred<void>;
-	private _pythonPathsPromise: Promise<string[]>;
+	private _pythonPathsPromise: Promise<PythonPathInfo[]>;
 
 	constructor(private apiWrapper: ApiWrapper, private jupyterInstallation: JupyterServerInstallation) {
 		this._setupComplete = new Deferred<void>();
@@ -129,18 +130,25 @@ export class ConfigurePythonDialog {
 	}
 
 	private async updatePythonPathsDropdown(useExistingPython: boolean): Promise<void> {
-		let dropdownValues: string[];
-		let defaultValue = JupyterServerInstallation.getPythonInstallPath(this.apiWrapper);
+		let pythonPaths: PythonPathInfo[];
+		let defaultValue = {
+			path: JupyterServerInstallation.getPythonInstallPath(this.apiWrapper),
+			version: `Python ${pythonVersion}`
+		};
 		let existingTextValue = this.getDropdownValue(this.pythonLocationDropdown.value);
 
 		if (useExistingPython) {
-			dropdownValues = await this._pythonPathsPromise;
-			if (!dropdownValues || dropdownValues.length === 0) {
-				dropdownValues = [defaultValue];
+			pythonPaths = await this._pythonPathsPromise;
+			if (!pythonPaths || pythonPaths.length === 0) {
+				pythonPaths = [defaultValue];
 			}
 		} else {
-			dropdownValues = [defaultValue];
+			pythonPaths = [defaultValue];
 		}
+
+		let dropdownValues = pythonPaths.map(path => {
+			return `${path.path} (${path.version})`;
+		});
 
 		await this.pythonLocationDropdown.updateProperties({
 			value: existingTextValue ? existingTextValue : dropdownValues[0],
