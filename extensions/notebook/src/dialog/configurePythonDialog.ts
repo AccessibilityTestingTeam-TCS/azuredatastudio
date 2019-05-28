@@ -28,7 +28,7 @@ export class ConfigurePythonDialog {
 	private readonly InvalidLocationMsg = localize('configurePython.invalidLocationMsg', "The specified install location is invalid.");
 	private readonly PythonNotFoundMsg = localize('configurePython.pythonNotFoundMsg', "No python installation was found at the specified location.");
 
-	private pythonLocationTextBox: azdata.InputBoxComponent;
+	private pythonLocationDropdown: azdata.DropDownComponent;
 	private browseButton: azdata.ButtonComponent;
 	private newInstallButton: azdata.RadioButtonComponent;
 	private existingInstallButton: azdata.RadioButtonComponent;
@@ -68,9 +68,11 @@ export class ConfigurePythonDialog {
 
 	private initializeContent(): void {
 		this.dialog.registerContent(async view => {
-			this.pythonLocationTextBox = view.modelBuilder.inputBox()
-				.withProperties<azdata.InputBoxProperties>({
+			this.pythonLocationDropdown = view.modelBuilder.dropDown()
+				.withProperties<azdata.DropDownProperties>({
 					value: JupyterServerInstallation.getPythonInstallPath(this.apiWrapper),
+					values: [],
+					editable: true,
 					width: '100%'
 				}).component();
 
@@ -105,7 +107,7 @@ export class ConfigurePythonDialog {
 					component: this.existingInstallButton,
 					title: ''
 				}, {
-					component: this.pythonLocationTextBox,
+					component: this.pythonLocationDropdown,
 					title: this.LocationTextBoxTitle
 				}, {
 					component: this.browseButton,
@@ -144,7 +146,7 @@ export class ConfigurePythonDialog {
 	}
 
 	private async handleInstall(): Promise<boolean> {
-		let pythonLocation = this.pythonLocationTextBox.value;
+		let pythonLocation = this.getDropdownValue(this.pythonLocationDropdown.value);
 		if (!pythonLocation || pythonLocation.length === 0) {
 			this.showErrorMessage(this.InvalidLocationMsg);
 			return false;
@@ -216,7 +218,7 @@ export class ConfigurePythonDialog {
 
 		let fileUris: vscode.Uri[] = await this.apiWrapper.showOpenDialog(options);
 		if (fileUris && fileUris[0]) {
-			this.pythonLocationTextBox.value = fileUris[0].fsPath;
+			this.pythonLocationDropdown.value = fileUris[0].fsPath;
 		}
 	}
 
@@ -225,5 +227,13 @@ export class ConfigurePythonDialog {
 			text: message,
 			level: azdata.window.MessageLevel.Error
 		};
+	}
+
+	private getDropdownValue(dropdownValue: string | azdata.CategoryValue): string {
+		if (typeof (dropdownValue) === 'string') {
+			return <string>dropdownValue;
+		} else {
+			return dropdownValue ? (<azdata.CategoryValue>dropdownValue).name : undefined;
+		}
 	}
 }
