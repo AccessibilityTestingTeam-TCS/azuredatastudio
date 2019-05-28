@@ -32,19 +32,19 @@ export class PythonPathLookup {
 		if (process.platform !== constants.winPlatform) {
 			let userFolder = process.env['HOME'];
 			condaLocations = [
-				'/opt/*conda*/bin/python',
-				'/usr/share/*conda*/bin/python',
-				`${userFolder}/*conda*/bin/python`
+				'/opt/*conda*/bin/python3',
+				'/usr/share/*conda*/bin/python3',
+				`${userFolder}/*conda*/bin/python3`
 			];
 		} else {
 			let userFolder = process.env['USERPROFILE'].replace('\\', '/').replace('C:', '');
 			condaLocations = [
-				'/ProgramData/[Mm]iniconda*/python.exe',
-				'/ProgramData/[Aa]naconda*/python.exe',
-				`${userFolder}/[Mm]iniconda*/python.exe`,
-				`${userFolder}/[Aa]naconda*/python.exe`,
-				`${userFolder}/AppData/Local/Continuum/[Mm]iniconda*/python.exe`,
-				`${userFolder}/AppData/Local/Continuum/[Aa]naconda*/python.exe`
+				'/ProgramData/[Mm]iniconda*/python3.exe',
+				'/ProgramData/[Aa]naconda*/python3.exe',
+				`${userFolder}/[Mm]iniconda*/python3.exe`,
+				`${userFolder}/[Aa]naconda*/python3.exe`,
+				`${userFolder}/AppData/Local/Continuum/[Mm]iniconda*/python3.exe`,
+				`${userFolder}/AppData/Local/Continuum/[Aa]naconda*/python3.exe`
 			];
 		}
 
@@ -96,13 +96,13 @@ export class PythonPathLookup {
 	}
 
 	private getPythonCommands(): { command: string; args?: string[] }[] {
-		const paths = ['python3.7', 'python3.6', 'python3', 'python2', 'python']
+		const paths = ['python3.7', 'python3.6', 'python3', 'python']
 			.map(item => { return { command: item }; });
 		if (process.platform !== constants.winPlatform) {
 			return paths;
 		}
 
-		const versions = ['3.7', '3.6', '3', '2'];
+		const versions = ['3.7', '3.6', '3'];
 		return paths.concat(versions.map(version => {
 			return { command: 'py', args: [`-${version}`] };
 		}));
