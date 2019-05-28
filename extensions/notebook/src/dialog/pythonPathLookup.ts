@@ -93,7 +93,7 @@ export class PythonPathLookup {
 	}
 
 	private getPythonCommands(): { command: string; args?: string[] }[] {
-		const paths = ['python3.7', 'python3.6', 'python3', 'python']
+		const paths = ['python3.7', 'python3.6', 'python3']
 			.map(item => { return { command: item }; });
 		if (process.platform !== constants.winPlatform) {
 			return paths;
