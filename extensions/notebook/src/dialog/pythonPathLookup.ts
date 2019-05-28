@@ -28,12 +28,12 @@ export class PythonPathLookup {
 		} else {
 			let userFolder = process.env['USERPROFILE'].replace('\\', '/').replace('C:', '');
 			condaLocations = [
-				'/ProgramData/[Mm]iniconda*/python3.exe',
-				'/ProgramData/[Aa]naconda*/python3.exe',
-				`${userFolder}/[Mm]iniconda*/python3.exe`,
-				`${userFolder}/[Aa]naconda*/python3.exe`,
-				`${userFolder}/AppData/Local/Continuum/[Mm]iniconda*/python3.exe`,
-				`${userFolder}/AppData/Local/Continuum/[Aa]naconda*/python3.exe`
+				'/ProgramData/[Mm]iniconda*/python.exe',
+				'/ProgramData/[Aa]naconda*/python.exe',
+				`${userFolder}/[Mm]iniconda*/python.exe`,
+				`${userFolder}/[Aa]naconda*/python.exe`,
+				`${userFolder}/AppData/Local/Continuum/[Mm]iniconda*/python.exe`,
+				`${userFolder}/AppData/Local/Continuum/[Aa]naconda*/python.exe`
 			];
 		}
 		this.condaLocationsGlob = condaLocations.join(',');
