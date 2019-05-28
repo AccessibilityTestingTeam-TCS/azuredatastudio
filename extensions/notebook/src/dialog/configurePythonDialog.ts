@@ -76,6 +76,7 @@ export class ConfigurePythonDialog {
 					value: '',
 					values: [],
 					editable: true,
+					fireOnTextChange: true,
 					width: '100%'
 				}).component();
 			let useExistingPython = JupyterServerInstallation.getExistingPythonSetting(this.apiWrapper);
