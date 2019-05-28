@@ -67,7 +67,7 @@ export class PythonPathLookup {
 	private async getPythonSuggestions(): Promise<string[]> {
 		const pathsToCheck = this.getPythonCommands();
 
-		let pythonPaths = await Promise.all(pathsToCheck.map(item => this.getInterpreter(item)));
+		let pythonPaths = await Promise.all(pathsToCheck.map(item => this.getPythonPath(item)));
 		let results: string[] = [];
 		if (pythonPaths) {
 			results = pythonPaths.filter(path => path && path.length > 0);
@@ -75,7 +75,7 @@ export class PythonPathLookup {
 		return results;
 	}
 
-	private async getInterpreter(options: { command: string; args?: string[] }): Promise<string> {
+	private async getPythonPath(options: { command: string; args?: string[] }): Promise<string> {
 		try {
 			let args = Array.isArray(options.args) ? options.args : [];
 			args = args.concat(['-c', '"import sys;print(sys.executable)"']);
