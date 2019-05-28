@@ -10,7 +10,7 @@ import * as utils from '../common/utils';
 import * as constants from '../common/constants';
 
 export interface PythonPathInfo {
-	path: string;
+	installDir: string;
 	version: string;
 }
 
@@ -48,7 +48,7 @@ export class PythonPathLookup {
 				pythonSuggestions = pythonSuggestions.concat(condaSuggestion);
 			}
 
-			return this.getPythonVersions(pythonSuggestions);
+			return this.getInfoForPaths(pythonSuggestions);
 		} else {
 			return [];
 		}
@@ -116,19 +116,24 @@ export class PythonPathLookup {
 		}));
 	}
 
-	private async getPythonVersions(pythonPaths: string[]): Promise<PythonPathInfo[]> {
-		let results = await Promise.all(pythonPaths.map(path => this.getPythonVersion(path)));
-		return results.filter(result => result && result.path && result.version);
+	private async getInfoForPaths(pythonPaths: string[]): Promise<PythonPathInfo[]> {
+		let results = await Promise.all(pythonPaths.map(path => this.getInfoForPath(path)));
+		return results.filter(result => result && result.installDir && result.version);
 	}
 
-	private async getPythonVersion(pythonPath: string): Promise<PythonPathInfo> {
+	private async getInfoForPath(pythonPath: string): Promise<PythonPathInfo> {
 		try {
-			const cmd = `"${pythonPath}" --version`;
+			let cmd = `"${pythonPath}" --version`;
 			let output = await utils.executeBufferedCommand(cmd, {});
 			let pythonVersion = output ? output.trim() : '';
-			if (pythonVersion.length > 0) {
+
+			cmd = `"${pythonPath}" -c "import sys;print(sys.exec_prefix)"`;
+			output = await utils.executeBufferedCommand(cmd, {});
+			let pythonPrefix = output ? output.trim() : '';
+
+			if (pythonVersion.length > 0 && pythonPrefix.length > 0) {
 				return {
-					path: pythonPath,
+					installDir: pythonPrefix,
 					version: pythonVersion
 				};
 			}

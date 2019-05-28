@@ -131,8 +131,8 @@ export class ConfigurePythonDialog {
 
 	private async updatePythonPathsDropdown(useExistingPython: boolean): Promise<void> {
 		let pythonPaths: PythonPathInfo[];
-		let defaultValue = {
-			path: JupyterServerInstallation.getPythonInstallPath(this.apiWrapper),
+		let defaultValue: PythonPathInfo = {
+			installDir: JupyterServerInstallation.getPythonInstallPath(this.apiWrapper),
 			version: `Python ${pythonVersion}`
 		};
 		let existingTextValue = this.getDropdownValue(this.pythonLocationDropdown.value);
@@ -147,7 +147,7 @@ export class ConfigurePythonDialog {
 		}
 
 		let dropdownValues = pythonPaths.map(path => {
-			return `${path.path} (${path.version})`;
+			return `${path.installDir} (${path.version})`;
 		});
 
 		await this.pythonLocationDropdown.updateProperties({
