@@ -3,7 +3,6 @@
  *  Licensed under the Source EULA. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as glob from 'glob';
 
@@ -11,7 +10,7 @@ import * as utils from '../common/utils';
 import * as constants from '../common/constants';
 
 export class PythonPathLookup {
-	constructor(private outputChannel: vscode.OutputChannel) {
+	constructor() {
 	}
 
 	public async getSuggestions(): Promise<string[]> {
@@ -86,13 +85,11 @@ export class PythonPathLookup {
 			if (value.length > 0 && fs.existsSync(value)) {
 				return value;
 			}
-
-			this.outputChannel.appendLine(`Detection of Python Interpreter for Command ${options.command} and args ${args.join(' ')} failed as file ${value} does not exist`);
-			return '';
 		} catch (err) {
-			this.outputChannel.appendLine(`Detection of Python Interpreter for Command ${options.command} failed: ${utils.getErrorMessage(err)}`);
-			return '';
+			// Ignore errors here, since this python version will just be excluded.
 		}
+
+		return undefined;
 	}
 
 	private getPythonCommands(): { command: string; args?: string[] }[] {

@@ -39,7 +39,7 @@ export class ConfigurePythonDialog {
 
 	constructor(private apiWrapper: ApiWrapper, private jupyterInstallation: JupyterServerInstallation) {
 		this._setupComplete = new Deferred<void>();
-		this._pythonPathsPromise = (new PythonPathLookup(this.jupyterInstallation.outputChannel)).getSuggestions();
+		this._pythonPathsPromise = (new PythonPathLookup()).getSuggestions();
 	}
 
 	/**
