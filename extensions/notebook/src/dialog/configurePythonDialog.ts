@@ -79,8 +79,6 @@ export class ConfigurePythonDialog {
 					fireOnTextChange: true,
 					width: '100%'
 				}).component();
-			let useExistingPython = JupyterServerInstallation.getExistingPythonSetting(this.apiWrapper);
-			await this.updatePythonPathsDropdown(useExistingPython);
 
 			this.browseButton = view.modelBuilder.button()
 				.withProperties<azdata.ButtonProperties>({
@@ -103,6 +101,7 @@ export class ConfigurePythonDialog {
 				}
 			});
 
+			let useExistingPython = JupyterServerInstallation.getExistingPythonSetting(this.apiWrapper);
 			this.createInstallRadioButtons(view.modelBuilder, useExistingPython);
 
 			let formModel = view.modelBuilder.formContainer()
@@ -124,6 +123,8 @@ export class ConfigurePythonDialog {
 				}]).component();
 
 			await view.initializeModel(formModel);
+
+			await this.updatePythonPathsDropdown(useExistingPython);
 		});
 	}
 

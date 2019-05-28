@@ -10,24 +10,9 @@ import * as utils from '../common/utils';
 import * as constants from '../common/constants';
 
 export class PythonPathLookup {
+	private condaLocationsGlob: string;
 	constructor() {
-	}
-
-	public async getSuggestions(): Promise<string[]> {
-		let pythonSuggestions = await this.getPythonSuggestions();
-		let condaSuggestion = await this.getCondaSuggestions();
-
-		let result: string[];
-		if (pythonSuggestions && condaSuggestion) {
-			result = pythonSuggestions.concat(condaSuggestion);
-		} else {
-			result = [];
-		}
-		return result;
-	}
-
-	private async getCondaSuggestions(): Promise<string> {
-		let condaLocations;
+		let condaLocations: string[];
 		if (process.platform !== constants.winPlatform) {
 			let userFolder = process.env['HOME'];
 			condaLocations = [
@@ -46,9 +31,24 @@ export class PythonPathLookup {
 				`${userFolder}/AppData/Local/Continuum/[Aa]naconda*/python3.exe`
 			];
 		}
+		this.condaLocationsGlob = `{${condaLocations.join(',')}}`;
+	}
 
-		let condaLocationsGlob = `{${condaLocations.join(',')}}`;
-		let condaFiles = await this.globSearch(condaLocationsGlob);
+	public async getSuggestions(): Promise<string[]> {
+		let pythonSuggestions = await this.getPythonSuggestions();
+		let condaSuggestion = await this.getCondaSuggestions();
+
+		let result: string[];
+		if (pythonSuggestions && condaSuggestion) {
+			result = pythonSuggestions.concat(condaSuggestion);
+		} else {
+			result = [];
+		}
+		return result;
+	}
+
+	private async getCondaSuggestions(): Promise<string> {
+		let condaFiles = await this.globSearch(this.condaLocationsGlob);
 		const validCondaFiles = condaFiles.filter(condaPath => condaPath.length > 0);
 		return validCondaFiles.length === 0 ? undefined : validCondaFiles[0];
 	}
