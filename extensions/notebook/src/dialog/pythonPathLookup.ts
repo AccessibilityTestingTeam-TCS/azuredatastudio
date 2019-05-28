@@ -31,7 +31,7 @@ export class PythonPathLookup {
 				`${userFolder}/AppData/Local/Continuum/[Aa]naconda*/python3.exe`
 			];
 		}
-		this.condaLocationsGlob = `{${condaLocations.join(',')}}`;
+		this.condaLocationsGlob = condaLocations.join(',');
 	}
 
 	public async getSuggestions(): Promise<string[]> {
@@ -39,8 +39,12 @@ export class PythonPathLookup {
 		let condaSuggestion = await this.getCondaSuggestions();
 
 		let result: string[];
-		if (pythonSuggestions && condaSuggestion) {
-			result = pythonSuggestions.concat(condaSuggestion);
+		if (pythonSuggestions) {
+			if (condaSuggestion && condaSuggestion.length > 0) {
+				result = pythonSuggestions.concat(condaSuggestion);
+			} else {
+				result = pythonSuggestions;
+			}
 		} else {
 			result = [];
 		}
@@ -48,9 +52,13 @@ export class PythonPathLookup {
 	}
 
 	private async getCondaSuggestions(): Promise<string> {
-		let condaFiles = await this.globSearch(this.condaLocationsGlob);
-		const validCondaFiles = condaFiles.filter(condaPath => condaPath.length > 0);
-		return validCondaFiles.length === 0 ? undefined : validCondaFiles[0];
+		try {
+			let condaFiles = await this.globSearch(this.condaLocationsGlob);
+			let validCondaFiles = condaFiles.filter(condaPath => condaPath.length > 0);
+			return validCondaFiles.length === 0 ? undefined : validCondaFiles[0];
+		} catch (err) {
+		}
+		return undefined;
 	}
 
 	private globSearch(globPattern: string): Promise<string[]> {
@@ -65,7 +73,7 @@ export class PythonPathLookup {
 	}
 
 	private async getPythonSuggestions(): Promise<string[]> {
-		const pathsToCheck = this.getPythonCommands();
+		let pathsToCheck = this.getPythonCommands();
 
 		let pythonPaths = await Promise.all(pathsToCheck.map(item => this.getPythonPath(item)));
 		let results: string[] = [];
