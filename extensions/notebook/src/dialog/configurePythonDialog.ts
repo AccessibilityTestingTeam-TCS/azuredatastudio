@@ -12,6 +12,7 @@ import * as utils from '../common/utils';
 import JupyterServerInstallation from '../jupyter/jupyterServerInstallation';
 import { ApiWrapper } from '../common/apiWrapper';
 import { Deferred } from '../common/promise';
+import { PythonPathLookup } from './pythonPathLookup';
 
 const localize = nls.loadMessageBundle();
 
@@ -34,9 +35,11 @@ export class ConfigurePythonDialog {
 	private existingInstallButton: azdata.RadioButtonComponent;
 
 	private _setupComplete: Deferred<void>;
+	private _pythonPathsPromise: Promise<string[]>;
 
 	constructor(private apiWrapper: ApiWrapper, private jupyterInstallation: JupyterServerInstallation) {
 		this._setupComplete = new Deferred<void>();
+		this._pythonPathsPromise = (new PythonPathLookup(this.jupyterInstallation.outputChannel)).getSuggestions();
 	}
 
 	/**
@@ -70,11 +73,13 @@ export class ConfigurePythonDialog {
 		this.dialog.registerContent(async view => {
 			this.pythonLocationDropdown = view.modelBuilder.dropDown()
 				.withProperties<azdata.DropDownProperties>({
-					value: JupyterServerInstallation.getPythonInstallPath(this.apiWrapper),
+					value: '',
 					values: [],
 					editable: true,
 					width: '100%'
 				}).component();
+			let useExistingPython = JupyterServerInstallation.getExistingPythonSetting(this.apiWrapper);
+			await this.updatePythonPathsDropdown(useExistingPython);
 
 			this.browseButton = view.modelBuilder.button()
 				.withProperties<azdata.ButtonProperties>({
@@ -97,7 +102,7 @@ export class ConfigurePythonDialog {
 				}
 			});
 
-			this.createInstallRadioButtons(view.modelBuilder);
+			this.createInstallRadioButtons(view.modelBuilder, useExistingPython);
 
 			let formModel = view.modelBuilder.formContainer()
 				.withFormItems([{
@@ -121,8 +126,27 @@ export class ConfigurePythonDialog {
 		});
 	}
 
-	private createInstallRadioButtons(modelBuilder: azdata.ModelBuilder): void {
-		let useExistingPython = JupyterServerInstallation.getExistingPythonSetting(this.apiWrapper);
+	private async updatePythonPathsDropdown(useExistingPython: boolean): Promise<void> {
+		let dropdownValues: string[];
+		let defaultValue = JupyterServerInstallation.getPythonInstallPath(this.apiWrapper);
+		let existingTextValue = this.getDropdownValue(this.pythonLocationDropdown.value);
+
+		if (useExistingPython) {
+			dropdownValues = await this._pythonPathsPromise;
+			if (!dropdownValues || dropdownValues.length === 0) {
+				dropdownValues = [defaultValue];
+			}
+		} else {
+			dropdownValues = [defaultValue];
+		}
+
+		await this.pythonLocationDropdown.updateProperties({
+			value: existingTextValue ? existingTextValue : dropdownValues[0],
+			values: dropdownValues
+		});
+	}
+
+	private createInstallRadioButtons(modelBuilder: azdata.ModelBuilder, useExistingPython: boolean): void {
 		let buttonGroup = 'installationType';
 		this.newInstallButton = modelBuilder.radioButton()
 			.withProperties<azdata.RadioButtonProperties>({
@@ -130,8 +154,9 @@ export class ConfigurePythonDialog {
 				label: localize('configurePython.newInstall', "New Python installation"),
 				checked: !useExistingPython
 			}).component();
-		this.newInstallButton.onDidClick(() => {
+		this.newInstallButton.onDidClick(async () => {
 			this.existingInstallButton.checked = false;
+			await this.updatePythonPathsDropdown(false);
 		});
 
 		this.existingInstallButton = modelBuilder.radioButton()
@@ -140,8 +165,9 @@ export class ConfigurePythonDialog {
 				label: localize('configurePython.existingInstall', "Use existing Python installation"),
 				checked: useExistingPython
 			}).component();
-		this.existingInstallButton.onDidClick(() => {
+		this.existingInstallButton.onDidClick(async () => {
 			this.newInstallButton.checked = false;
+			await this.updatePythonPathsDropdown(true);
 		});
 	}
 
