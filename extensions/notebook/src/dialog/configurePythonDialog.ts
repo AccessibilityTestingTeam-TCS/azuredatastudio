@@ -164,9 +164,12 @@ export class ConfigurePythonDialog {
 				label: localize('configurePython.newInstall', "New Python installation"),
 				checked: !useExistingPython
 			}).component();
-		this.newInstallButton.onDidClick(async () => {
+		this.newInstallButton.onDidClick(() => {
 			this.existingInstallButton.checked = false;
-			await this.updatePythonPathsDropdown(false);
+			this.updatePythonPathsDropdown(false)
+				.catch(err => {
+					this.showErrorMessage(utils.getErrorMessage(err));
+				});
 		});
 
 		this.existingInstallButton = modelBuilder.radioButton()
@@ -175,9 +178,12 @@ export class ConfigurePythonDialog {
 				label: localize('configurePython.existingInstall', "Use existing Python installation"),
 				checked: useExistingPython
 			}).component();
-		this.existingInstallButton.onDidClick(async () => {
+		this.existingInstallButton.onDidClick(() => {
 			this.newInstallButton.checked = false;
-			await this.updatePythonPathsDropdown(true);
+			this.updatePythonPathsDropdown(true)
+				.catch(err => {
+					this.showErrorMessage(utils.getErrorMessage(err));
+				});
 		});
 	}
 
