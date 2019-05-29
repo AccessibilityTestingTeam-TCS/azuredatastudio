@@ -104,13 +104,13 @@ export class PythonPathLookup {
 	}
 
 	private getPythonCommands(): { command: string; args?: string[] }[] {
-		const paths = ['python3.7', 'python3.6', 'python3', 'python']
+		const paths = ['python3.7', 'python3.6', 'python3', 'python2', 'python']
 			.map(item => { return { command: item }; });
 		if (process.platform !== constants.winPlatform) {
 			return paths;
 		}
 
-		const versions = ['3.7', '3.6', '3'];
+		const versions = ['3.7', '3.6', '3', '2'];
 		return paths.concat(versions.map(version => {
 			return { command: 'py', args: [`-${version}`] };
 		}));
