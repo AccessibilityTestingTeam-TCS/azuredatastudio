@@ -57,7 +57,7 @@ export class PythonPathLookup {
 	private async getCondaSuggestions(): Promise<string> {
 		try {
 			let condaFiles = await this.globSearch(this.condaLocationsGlob);
-			let validCondaFiles = condaFiles.filter(condaPath => condaPath.length > 0);
+			let validCondaFiles = condaFiles.filter(condaPath => condaPath && condaPath.length > 0);
 			return validCondaFiles.length === 0 ? undefined : validCondaFiles[0];
 		} catch (err) {
 		}
